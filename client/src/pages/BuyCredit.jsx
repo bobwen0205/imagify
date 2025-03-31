@@ -2,9 +2,27 @@ import React, { useContext } from "react";
 import { assets, plans } from "../assets/assets";
 import { AppContext } from "../Context/AppContext";
 import { motion } from "motion/react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const BuyCredit = () => {
-  const { user } = useContext(AppContext);
+  const { user, backendUrl, token } = useContext(AppContext);
+  const onClickHandler = async (planId) => {
+    try {
+      const { data } = await axios.post(
+        backendUrl + "/api/user/buy",
+        { planId },
+        { headers: { token } }
+      );
+      if (!data.success) {
+        return toast.error(data.message);
+      }
+      const { session_url } = data;
+      window.location.replace(session_url);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
   return (
     <motion.div
       initial={{ opacity: 0.2, y: 100 }}
@@ -33,7 +51,10 @@ const BuyCredit = () => {
               <span className="text-3xl font-medium">${item.price} </span>/{" "}
               {item.credits} credits
             </p>
-            <button className="w-full bg-gray-800 text-white mt-8 text-sm rounded-md py-2.5 min-w-5">
+            <button
+              onClick={() => onClickHandler(item.id)}
+              className="w-full bg-gray-800 text-white mt-8 text-sm rounded-md py-2.5 min-w-5"
+            >
               {user ? "Purchase" : "Get Started"}
             </button>
           </div>
